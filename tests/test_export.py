@@ -1,11 +1,13 @@
 from io import BytesIO
 
-from openpyxl import load_workbook
-
-from fuel_control.export import records_to_excel
+import pytest
 
 
 def test_excel_export():
+    pytest.importorskip("pandas")
+    load_workbook = pytest.importorskip("openpyxl").load_workbook
+    from fuel_control.export import records_to_excel
+
     record = {key: value for key, value in zip(
         ["month", "vehicle_name", "season", "norm", "mileage", "filled", "opening_balance",
          "closing_balance", "normative_consumption", "actual_consumption", "difference"],

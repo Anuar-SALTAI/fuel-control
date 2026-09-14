@@ -39,7 +39,11 @@ calculate_tab, history_tab, vehicles_tab = st.tabs([t["calculate"], t["history"]
 
 with calculate_tab:
     vehicles = db.vehicles()
-    selected = st.selectbox(t["vehicle"], vehicles, format_func=lambda row: row["name"])
+    vehicles_by_id = {vehicle["id"]: vehicle for vehicle in vehicles}
+    selected_id = st.selectbox(
+        t["vehicle"], list(vehicles_by_id), format_func=lambda vehicle_id: vehicles_by_id[vehicle_id]["name"]
+    )
+    selected = vehicles_by_id[selected_id]
     left, right = st.columns(2)
     with left:
         month = st.date_input(t["month"], value=date.today().replace(day=1))
@@ -76,11 +80,13 @@ with calculate_tab:
 
 with history_tab:
     vehicles = db.vehicles()
-    choices = [None, *vehicles]
-    filter_vehicle = st.selectbox(
-        t["vehicle"], choices, format_func=lambda row: t["all"] if row is None else row["name"], key="history_vehicle"
+    vehicles_by_id = {vehicle["id"]: vehicle for vehicle in vehicles}
+    filter_vehicle_id = st.selectbox(
+        t["vehicle"], [None, *vehicles_by_id],
+        format_func=lambda vehicle_id: t["all"] if vehicle_id is None else vehicles_by_id[vehicle_id]["name"],
+        key="history_vehicle",
     )
-    records = db.records(None if filter_vehicle is None else filter_vehicle["id"])
+    records = db.records(filter_vehicle_id)
     if not records:
         st.info(t["no_history"])
     else:
@@ -106,7 +112,12 @@ with history_tab:
 
 with vehicles_tab:
     vehicles = db.vehicles()
-    edit_vehicle = st.selectbox(t["vehicle"], vehicles, format_func=lambda row: row["name"], key="edit_vehicle")
+    vehicles_by_id = {vehicle["id"]: vehicle for vehicle in vehicles}
+    edit_vehicle_id = st.selectbox(
+        t["vehicle"], list(vehicles_by_id),
+        format_func=lambda vehicle_id: vehicles_by_id[vehicle_id]["name"], key="edit_vehicle",
+    )
+    edit_vehicle = vehicles_by_id[edit_vehicle_id]
     with st.form("edit_vehicle_form"):
         summer_norm = st.number_input(t["summer_norm"], min_value=0.0, value=float(edit_vehicle["summer_norm"]), step=0.1)
         winter_norm = st.number_input(t["winter_norm"], min_value=0.0, value=float(edit_vehicle["winter_norm"]), step=0.1)

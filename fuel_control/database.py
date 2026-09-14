@@ -58,9 +58,10 @@ class Database:
                 ("Газель", 26, 29.12),
             )
 
-    def vehicles(self) -> list[sqlite3.Row]:
+    def vehicles(self) -> list[dict]:
         with self.connect() as connection:
-            return connection.execute("SELECT * FROM vehicles ORDER BY name").fetchall()
+            rows = connection.execute("SELECT * FROM vehicles ORDER BY name").fetchall()
+            return [dict(row) for row in rows]
 
     def add_vehicle(self, name: str, summer_norm: float, winter_norm: float) -> int:
         with self.connect() as connection:
@@ -90,7 +91,7 @@ class Database:
             )
             return cursor.lastrowid
 
-    def records(self, vehicle_id: int | None = None) -> list[sqlite3.Row]:
+    def records(self, vehicle_id: int | None = None) -> list[dict]:
         query = """SELECT r.*, v.name AS vehicle_name FROM records r
                    JOIN vehicles v ON v.id = r.vehicle_id"""
         params: tuple = ()
@@ -99,7 +100,8 @@ class Database:
             params = (vehicle_id,)
         query += " ORDER BY r.month DESC, r.created_at DESC, r.id DESC"
         with self.connect() as connection:
-            return connection.execute(query, params).fetchall()
+            rows = connection.execute(query, params).fetchall()
+            return [dict(row) for row in rows]
 
     def delete_record(self, record_id: int) -> None:
         with self.connect() as connection:

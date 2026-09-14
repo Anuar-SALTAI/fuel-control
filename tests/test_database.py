@@ -1,9 +1,12 @@
+import pickle
+
 from fuel_control.database import Database
 
 
 def test_database_creates_default_gazelle(tmp_path):
     db = Database(tmp_path / "test.db")
     vehicle = db.vehicles()[0]
+    assert type(vehicle) is dict
     assert vehicle["name"] == "Газель"
     assert vehicle["summer_norm"] == 26
     assert vehicle["winter_norm"] == 29.12
@@ -23,3 +26,20 @@ def test_vehicle_update_and_record_lifecycle(tmp_path):
     assert db.records(vehicle_id)[0]["vehicle_name"] == "Toyota"
     db.delete_record(record_id)
     assert db.records(vehicle_id) == []
+
+
+def test_results_are_pickle_safe_for_streamlit_widgets(tmp_path):
+    db = Database(tmp_path / "test.db")
+    vehicle = db.vehicles()[0]
+    db.add_record(
+        vehicle_id=vehicle["id"], month="2026-09", season="summer", norm=26,
+        mileage=100, filled=26, opening_balance=0, closing_balance=0,
+        normative_consumption=26, actual_consumption=26, difference=0,
+    )
+
+    vehicles = db.vehicles()
+    records = db.records()
+
+    assert all(type(item) is dict for item in vehicles)
+    assert all(type(item) is dict for item in records)
+    pickle.dumps((vehicles, records))
