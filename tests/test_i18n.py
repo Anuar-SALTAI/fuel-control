@@ -32,7 +32,8 @@ def test_brand_assets_and_slogans_are_present_without_fuel_emoji():
     assert 'page_icon="assets/logo.svg"' in source
     assert "⛽" not in source
     assert Path("assets/logo.svg").is_file()
-    assert Path("assets/header-banner.svg").is_file()
+    assert 'asset_data("assets/hero_banner.png")' in source
+    assert not Path("assets/header-banner.svg").exists()
     assert Path("assets/sidebar-road.svg").is_file()
     assert TEXT["kk"]["header_slogan"] == "Жолдың әр километрі — бақылауда"
     assert TEXT["ru"]["header_slogan"] == "Каждый километр — под контролем"

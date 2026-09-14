@@ -25,9 +25,9 @@ st.markdown(
 :root{--fc-blue:#0868df;--fc-navy:#102a56;--fc-border:#dbe6f2;--fc-bg:#f5f8fc}
 .stApp{background:linear-gradient(135deg,#f7faff 0%,#fff 52%,#f4f8fd 100%);color:var(--fc-navy)}
 .block-container{max-width:1320px;padding:3.75rem 1.5rem 3rem}.fc-brand{font-size:1.48rem;font-weight:800;color:#0b2348}
-.fc-banner{height:150px;border:1px solid var(--fc-border);border-radius:16px;background-size:cover;background-position:center;position:relative;overflow:hidden}
-.fc-banner-copy{position:absolute;inset:0;display:flex;align-items:center;padding:1.2rem 1.5rem;background:linear-gradient(90deg,rgba(247,251,255,.98) 0%,rgba(247,251,255,.78) 28%,transparent 58%)}
-.fc-logo{width:48px;height:48px;margin-right:.8rem}.fc-slogan{position:absolute;left:33%;top:35%;font-size:1.15rem;font-style:italic;color:#24466e;text-shadow:0 1px 4px #fff}
+.fc-banner{height:250px;border:1px solid var(--fc-border);border-radius:16px;background-size:cover;background-position:center 62%;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(15,45,92,.14)}
+.fc-banner-copy{position:absolute;inset:0;display:flex;align-items:flex-start;padding:1.35rem 1.5rem;background:linear-gradient(90deg,rgba(5,28,59,.78) 0%,rgba(5,28,59,.48) 34%,rgba(5,28,59,.08) 67%,rgba(5,28,59,.18) 100%)}
+.fc-banner .fc-brand{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.3)}.fc-banner .fc-subtitle{color:#e7f2ff}.fc-logo{width:48px;height:48px;margin-right:.8rem}.fc-slogan{position:absolute;left:34%;top:22%;font-size:1.15rem;font-style:italic;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.65)}
 .fc-icon{display:inline-block;width:1.35rem;height:1.35rem;vertical-align:-.3rem;margin-right:.45rem;color:#1677ff}.fc-info{margin-top:1rem;padding:.7rem .8rem;background:#f5f9ff;border-top:1px solid var(--fc-border);color:#60738f;font-size:.82rem}
 .fc-subtitle{color:#60738f;font-size:.88rem}.fc-page-title{font-size:1.75rem;font-weight:800;margin:.8rem 0 .05rem}
 .fc-page-note{color:#60738f;margin-bottom:1.1rem}.fc-card{background:#fff;border:1px solid var(--fc-border);border-radius:12px;
@@ -46,7 +46,7 @@ section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked){ba
 div[data-testid="stButton"] button,div[data-testid="stDownloadButton"] button{border-radius:8px;min-height:2.65rem;font-weight:650}
 div[data-baseweb="input"]>div,div[data-baseweb="select"]>div,textarea{border-radius:8px!important}
 @media(max-width:700px){.block-container{padding:calc(3.75rem + env(safe-area-inset-top, 0px)) .65rem 2rem}.fc-brand{font-size:1.15rem}.fc-page-title{font-size:1.45rem}
-.fc-banner{height:105px}.fc-banner-copy{padding:.65rem;background:linear-gradient(90deg,rgba(247,251,255,.97),rgba(247,251,255,.7) 55%,transparent)}.fc-logo{width:34px;height:34px}.fc-slogan{display:none}
+.fc-banner{height:150px;background-position:center 62%}.fc-banner-copy{padding:.75rem;background:linear-gradient(90deg,rgba(5,28,59,.78),rgba(5,28,59,.35) 65%,transparent)}.fc-logo{width:34px;height:34px}.fc-slogan{display:none}
 .fc-result{min-height:104px;padding:.75rem}.fc-value{font-size:1.3rem}.fc-table-wrap{display:none}.fc-mobile-records{display:block}
 div[data-testid="stHorizontalBlock"]{gap:.55rem}.fc-card{padding:.8rem}.fc-vehicle .fc-badge{float:none;display:inline-block;margin-top:.35rem}}
 </style>""",
@@ -60,13 +60,17 @@ def asset_data(path: str) -> str:
     return b64encode(Path(path).read_bytes()).decode("ascii")
 
 
-header, switch = st.columns([5, 1.05], vertical_alignment="center")
+header, switch, profile = st.columns([5, 1.05, 0.3], vertical_alignment="center")
 language = switch.radio(
     "Language", ["Қаз", "Рус"], horizontal=True, label_visibility="collapsed"
 )
 t = TEXT["kk" if language == "Қаз" else "ru"]
+profile.markdown(
+    '<svg aria-label="Profile" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#315679" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3"/><path d="M6.5 19c.8-3 2.7-4.5 5.5-4.5s4.7 1.5 5.5 4.5"/></svg>',
+    unsafe_allow_html=True,
+)
 header.markdown(
-    f'<div class="fc-banner" style="background-image:url(data:image/svg+xml;base64,{asset_data("assets/header-banner.svg")})">'
+    f'<div class="fc-banner" style="background-image:url(data:image/png;base64,{asset_data("assets/hero_banner.png")})">'
     f'<div class="fc-banner-copy"><img class="fc-logo" src="data:image/svg+xml;base64,{asset_data("assets/logo.svg")}">'
     f'<div><div class="fc-brand">Fuel Control</div><div class="fc-subtitle">{t["brand_subtitle"]}</div></div></div>'
     f'<div class="fc-slogan">{html.escape(t["header_slogan"])}</div></div>',
