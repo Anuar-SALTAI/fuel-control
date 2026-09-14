@@ -2,8 +2,10 @@
 
 import html
 import sqlite3
+from base64 import b64encode
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 import streamlit as st
 
@@ -14,7 +16,7 @@ from fuel_control.i18n import TEXT
 
 st.set_page_config(
     page_title="Fuel Control",
-    page_icon="⛽",
+    page_icon="assets/logo.svg",
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -22,12 +24,16 @@ st.markdown(
     """<style>
 :root{--fc-blue:#0868df;--fc-navy:#102a56;--fc-border:#dbe6f2;--fc-bg:#f5f8fc}
 .stApp{background:linear-gradient(135deg,#f7faff 0%,#fff 52%,#f4f8fd 100%);color:var(--fc-navy)}
-.block-container{max-width:1280px;padding:3.75rem 1.5rem 3rem}.fc-brand{font-size:1.48rem;font-weight:800;color:#0b2348}
+.block-container{max-width:1320px;padding:3.75rem 1.5rem 3rem}.fc-brand{font-size:1.48rem;font-weight:800;color:#0b2348}
+.fc-banner{height:150px;border:1px solid var(--fc-border);border-radius:16px;background-size:cover;background-position:center;position:relative;overflow:hidden}
+.fc-banner-copy{position:absolute;inset:0;display:flex;align-items:center;padding:1.2rem 1.5rem;background:linear-gradient(90deg,rgba(247,251,255,.98) 0%,rgba(247,251,255,.78) 28%,transparent 58%)}
+.fc-logo{width:48px;height:48px;margin-right:.8rem}.fc-slogan{position:absolute;left:33%;top:35%;font-size:1.15rem;font-style:italic;color:#24466e;text-shadow:0 1px 4px #fff}
+.fc-icon{display:inline-block;width:1.35rem;height:1.35rem;vertical-align:-.3rem;margin-right:.45rem;color:#1677ff}.fc-info{margin-top:1rem;padding:.7rem .8rem;background:#f5f9ff;border-top:1px solid var(--fc-border);color:#60738f;font-size:.82rem}
 .fc-subtitle{color:#60738f;font-size:.88rem}.fc-page-title{font-size:1.75rem;font-weight:800;margin:.8rem 0 .05rem}
 .fc-page-note{color:#60738f;margin-bottom:1.1rem}.fc-card{background:#fff;border:1px solid var(--fc-border);border-radius:12px;
 padding:1.15rem;box-shadow:0 2px 10px rgba(34,75,120,.035);margin-bottom:1rem}.fc-card-title{font-size:1.05rem;font-weight:750;margin-bottom:.9rem}
 .fc-result{min-height:122px;border-radius:11px;padding:1rem;background:#edf7ff;color:#155ea8}.fc-result.orange{background:#fff3e6;color:#9d4a00}
-.fc-result.purple{background:#f4efff;color:#5833b8}.fc-result.green{background:#eafaf1;color:#087240}.fc-label{font-size:.82rem;font-weight:650}
+.fc-result.purple{background:#f4efff;color:#5833b8}.fc-result.green{background:#eafaf1;color:#087240}.fc-result.red{background:#fff0f0;color:#b42318}.fc-label{font-size:.82rem;font-weight:650}
 .fc-value{font-size:1.65rem;font-weight:800;margin:.3rem 0}.fc-formula{font-size:.78rem;opacity:.72}.fc-status{border-radius:10px;padding:.9rem;background:#f6f9fd;text-align:center}
 .fc-vehicle{border:1px solid var(--fc-border);border-radius:10px;padding:.8rem;margin:.5rem 0;background:#fff}.fc-vehicle b{font-size:.98rem}
 .fc-badge{float:right;background:#daf6e3;color:#08733b;border-radius:999px;padding:.18rem .55rem;font-size:.72rem}.fc-badge.off{background:#edf0f4;color:#667085}
@@ -35,9 +41,12 @@ padding:1.15rem;box-shadow:0 2px 10px rgba(34,75,120,.035);margin-bottom:1rem}.f
 .fc-table th,.fc-table td{padding:.55rem;border:1px solid #dce5ef;white-space:nowrap}.fc-mobile-records{display:none}.fc-mobile-record{background:#fff;border:1px solid var(--fc-border);border-radius:10px;padding:.8rem;margin:.55rem 0}
 section[data-testid="stSidebar"]{background:#f7faff;border-right:1px solid var(--fc-border)}
 section[data-testid="stSidebar"] [role="radiogroup"] label{padding:.48rem .6rem;border-radius:8px;margin:.15rem 0}
+section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked){background:#1677ff;color:#fff}
+.fc-sidebar-brand{text-align:left;color:#416183;padding:.2rem 1rem 1rem;font-size:.88rem}.fc-sidebar-road{width:100%;margin-top:8rem}
 div[data-testid="stButton"] button,div[data-testid="stDownloadButton"] button{border-radius:8px;min-height:2.65rem;font-weight:650}
 div[data-baseweb="input"]>div,div[data-baseweb="select"]>div,textarea{border-radius:8px!important}
-@media(max-width:700px){.block-container{padding:calc(3.75rem + env(safe-area-inset-top, 0px)) .65rem 2rem}.fc-brand{font-size:1.2rem}.fc-page-title{font-size:1.45rem}
+@media(max-width:700px){.block-container{padding:calc(3.75rem + env(safe-area-inset-top, 0px)) .65rem 2rem}.fc-brand{font-size:1.15rem}.fc-page-title{font-size:1.45rem}
+.fc-banner{height:105px}.fc-banner-copy{padding:.65rem;background:linear-gradient(90deg,rgba(247,251,255,.97),rgba(247,251,255,.7) 55%,transparent)}.fc-logo{width:34px;height:34px}.fc-slogan{display:none}
 .fc-result{min-height:104px;padding:.75rem}.fc-value{font-size:1.3rem}.fc-table-wrap{display:none}.fc-mobile-records{display:block}
 div[data-testid="stHorizontalBlock"]{gap:.55rem}.fc-card{padding:.8rem}.fc-vehicle .fc-badge{float:none;display:inline-block;margin-top:.35rem}}
 </style>""",
@@ -45,39 +54,74 @@ div[data-testid="stHorizontalBlock"]{gap:.55rem}.fc-card{padding:.8rem}.fc-vehic
 )
 
 db = Database()
-header, switch = st.columns([5, 1.2], vertical_alignment="center")
-header.markdown(
-    '<div class="fc-brand">⛽ Fuel Control</div><div class="fc-subtitle">Автокөлік жанармай есебі / Учет топлива автомобилей</div>',
-    unsafe_allow_html=True,
-)
+
+
+def asset_data(path: str) -> str:
+    return b64encode(Path(path).read_bytes()).decode("ascii")
+
+
+header, switch = st.columns([5, 1.05], vertical_alignment="center")
 language = switch.radio(
     "Language", ["Қаз", "Рус"], horizontal=True, label_visibility="collapsed"
 )
 t = TEXT["kk" if language == "Қаз" else "ru"]
+header.markdown(
+    f'<div class="fc-banner" style="background-image:url(data:image/svg+xml;base64,{asset_data("assets/header-banner.svg")})">'
+    f'<div class="fc-banner-copy"><img class="fc-logo" src="data:image/svg+xml;base64,{asset_data("assets/logo.svg")}">'
+    f'<div><div class="fc-brand">Fuel Control</div><div class="fc-subtitle">{t["brand_subtitle"]}</div></div></div>'
+    f'<div class="fc-slogan">{html.escape(t["header_slogan"])}</div></div>',
+    unsafe_allow_html=True,
+)
 
 menu_labels = [
-    t["new_calculation"],
-    t["history"],
-    t["vehicles"],
-    t["excel_export"],
-    t["settings"],
-    t["instruction"],
+    f'⊕  {t["new_calculation"]}',
+    f'◷  {t["history"]}',
+    f'▱  {t["vehicles"]}',
+    f'⇩  {t["excel_export"]}',
+    f'◇  {t["settings"]}',
+    f'?  {t["instruction"]}',
 ]
-page = st.sidebar.radio("Fuel Control", menu_labels, label_visibility="collapsed")
+page = st.sidebar.radio(
+    "Fuel Control", menu_labels, label_visibility="collapsed", key="navigation"
+)
+page_key = ("new", "history", "vehicles", "export", "settings", "instruction")[
+    menu_labels.index(page)
+]
 st.sidebar.caption("v1.1.0")
+st.sidebar.markdown(
+    f'<img class="fc-sidebar-road" src="data:image/svg+xml;base64,{asset_data("assets/sidebar-road.svg")}">'
+    f'<div class="fc-sidebar-brand"><b>{t["sidebar_slogan_1"]}</b><br>{t["sidebar_slogan_2"]}</div>',
+    unsafe_allow_html=True,
+)
 
 
 def fmt(value: Decimal | float, unit="л") -> str:
     return f"{Decimal(str(value)):.2f} {unit}"
 
 
-def metric_card(label, value, formula, color=""):
-    return f'<div class="fc-result {color}"><div class="fc-label">{html.escape(label)}</div><div class="fc-value">{html.escape(value)}</div><div class="fc-formula">{html.escape(formula)}</div></div>'
+ICONS = {
+    "car": '<path d="M4 16l2-6h12l2 6M3 16h18v4h-2v-2H5v2H3v-4Zm4-6 2-4h6l2 4M7 15h.01M17 15h.01"/>',
+    "chart": '<path d="M4 20V10m6 10V4m6 16v-7m4 7H2"/>',
+    "road": '<path d="M8 22 10 2m6 20L14 2M12 6v3m0 4v3m0 4v2"/>',
+    "gauge": '<path d="M4 18a8 8 0 1 1 16 0M12 18l4-6M6 18h12"/>',
+    "fuel": '<path d="M5 21V4h10v17M4 21h12M7 8h6v5H7m8-6h2l3 3v8a2 2 0 0 1-4 0v-5"/>',
+    "tank": '<path d="M4 8h16v12H4zM7 8V5h10v3M8 14h8"/>',
+    "history": '<path d="M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5m4-1v5l3 2"/>',
+    "help": '<circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.3 2.3 0 1 1 3.4 2c-1.2.7-1.2 1.2-1.2 2m0 4h.01"/>',
+}
+
+
+def icon(name: str) -> str:
+    return f'<svg class="fc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{ICONS[name]}</svg>'
+
+
+def metric_card(label, value, formula, color="", icon_name="chart"):
+    return f'<div class="fc-result {color}">{icon(icon_name)}<span class="fc-label">{html.escape(label)}</span><div class="fc-value">{html.escape(value)}</div><div class="fc-formula">{html.escape(formula)}</div></div>'
 
 
 def page_heading(title, note):
     st.markdown(
-        f'<div class="fc-page-title">{html.escape(title)}</div><div class="fc-page-note">{html.escape(note)}</div>',
+        f'<div class="fc-page-title">{icon("fuel")}{html.escape(title)}</div><div class="fc-page-note">{html.escape(note)}</div>',
         unsafe_allow_html=True,
     )
 
@@ -170,14 +214,14 @@ def vehicle_cards(vehicles):
             or "—"
         )
         st.markdown(
-            f'<div class="fc-vehicle"><span class="{badge}">{html.escape(status)}</span><b>🚙 {html.escape(vehicle["name"])}</b><br>'
+            f'<div class="fc-vehicle"><span class="{badge}">{html.escape(status)}</span><b>{icon("car")}{html.escape(vehicle["name"])}</b><br>'
             f'<span class="fc-subtitle">{html.escape(details)} · {html.escape(t["summer"])}: {vehicle["summer_norm"]:g} · '
             f'{html.escape(t["winter"])}: {vehicle["winter_norm"]:g}</span></div>',
             unsafe_allow_html=True,
         )
 
 
-if page == t["new_calculation"]:
+if page_key == "new":
     page_heading(t["new_calculation"], t["new_calculation_note"])
     left, right = st.columns([1.03, 0.97], gap="medium")
     vehicles = db.vehicles(include_archived=False) or db.vehicles()
@@ -186,13 +230,19 @@ if page == t["new_calculation"]:
     result_box = right.container(border=True)
     with form_box:
         st.markdown(
-            f'<div class="fc-card-title">🚙 {t["basic_data"]}</div>',
+            f'<div class="fc-card-title">{icon("car")}{t["basic_data"]}</div>',
             unsafe_allow_html=True,
         )
-        vehicle_id = st.selectbox(
+        select_col, manage_col = st.columns([3, 1.15], vertical_alignment="bottom")
+        vehicle_id = select_col.selectbox(
             t["vehicle"],
             list(vehicles_by_id),
-            format_func=lambda value: vehicles_by_id[value]["name"],
+            format_func=lambda value: f'{vehicles_by_id[value]["name"]} ({vehicles_by_id[value]["plate_number"] or "—"})',
+        )
+        manage_col.button(
+            t["manage_vehicles"],
+            use_container_width=True,
+            on_click=lambda: st.session_state.update(navigation=menu_labels[2]),
         )
         vehicle = vehicles_by_id[vehicle_id]
         d1, d2 = st.columns(2)
@@ -204,10 +254,12 @@ if page == t["new_calculation"]:
         f1, f2 = st.columns(2)
         start_fuel = f1.text_input(t["start_fuel"], "0", key="calc_start_fuel")
         refueled = f2.text_input(t["refueled_fuel"], "0", key="calc_refueled")
+        summer_option = f'{t["summer"]} ({vehicle["summer_norm"]:g})'
+        winter_option = f'{t["winter"]} ({vehicle["winter_norm"]:g})'
         norm_mode = st.radio(
-            t["norm_unit"], [t["summer"], t["winter"], t["custom"]], horizontal=True
+            t["used_norm"], [summer_option, winter_option, t["custom"]], horizontal=True
         )
-        season = "winter" if norm_mode == t["winter"] else "summer"
+        season = "winter" if norm_mode == winter_option else "summer"
         default_norm = (
             vehicle["winter_norm"] if season == "winter" else vehicle["summer_norm"]
         )
@@ -236,7 +288,7 @@ if page == t["new_calculation"]:
         )
     with result_box:
         st.markdown(
-            f'<div class="fc-card-title">▦ {t["calculation_result"]}</div>',
+            f'<div class="fc-card-title">{icon("chart")}{t["calculation_result"]}</div>',
             unsafe_allow_html=True,
         )
         if validation_error:
@@ -249,12 +301,17 @@ if page == t["new_calculation"]:
                     t["distance_km"],
                     fmt(calculation.distance_km, "км"),
                     f"{end_odo} − {start_odo}",
+                    icon_name="road",
                 ),
                 unsafe_allow_html=True,
             )
             r2.markdown(
                 metric_card(
-                    t["used_norm"], fmt(used_norm, "л/100 км"), norm_mode, "orange"
+                    t["used_norm"],
+                    fmt(used_norm, "л/100 км"),
+                    norm_mode,
+                    "orange",
+                    "gauge",
                 ),
                 unsafe_allow_html=True,
             )
@@ -264,6 +321,7 @@ if page == t["new_calculation"]:
                     fmt(calculation.normative_consumption),
                     f"{calculation.distance_km:g} × {used_norm:g} / 100",
                     "purple",
+                    "fuel",
                 ),
                 unsafe_allow_html=True,
             )
@@ -273,11 +331,17 @@ if page == t["new_calculation"]:
                     fmt(calculation.calculated_balance),
                     f"{start_fuel} + {refueled} − {calculation.normative_consumption}",
                     "green",
+                    "tank",
                 ),
                 unsafe_allow_html=True,
             )
-        with st.expander(f'⛽ {t["actual_optional"]}'):
-            actual = st.text_input(t["actual_end_fuel"], "", key="calc_actual")
+        with st.expander(t["actual_optional"]):
+            actual = st.text_input(
+                t["actual_end_fuel"],
+                "",
+                key="calc_actual",
+                placeholder=t["actual_placeholder"],
+            )
             if actual.strip() and calculation:
                 try:
                     checked = calculate_fuel(
@@ -293,11 +357,31 @@ if page == t["new_calculation"]:
                         )
                     )
                     a1, a2 = st.columns(2)
-                    a1.metric(t["difference"], fmt(checked.difference))
-                    a2.metric(status, fmt(abs(checked.difference)))
+                    status_color = (
+                        "green"
+                        if checked.difference > 0
+                        else "red" if checked.difference < 0 else ""
+                    )
+                    a1.markdown(
+                        metric_card(
+                            t["difference"],
+                            fmt(checked.difference),
+                            "",
+                            icon_name="chart",
+                        ),
+                        unsafe_allow_html=True,
+                    )
+                    a2.markdown(
+                        metric_card(t["result"], status, "", status_color, "gauge"),
+                        unsafe_allow_html=True,
+                    )
                     calculation = checked
                 except ValueError:
                     st.error(t["invalid_number"])
+        st.markdown(
+            f'<div class="fc-info">ⓘ {t["automatic_info"]}</div>',
+            unsafe_allow_html=True,
+        )
     with form_box:
 
         def clear_calculator():
@@ -347,7 +431,7 @@ if page == t["new_calculation"]:
             )
             st.success(t["saved"])
     st.markdown(
-        f'<div class="fc-card"><div class="fc-card-title">▣ {t["recent_records"]}</div>',
+        f'<div class="fc-card"><div class="fc-card-title">{icon("history")}{t["recent_records"]}</div>',
         unsafe_allow_html=True,
     )
     recent_records(db.records())
@@ -355,19 +439,19 @@ if page == t["new_calculation"]:
     vcol, guide = st.columns([1.1, 0.9])
     with vcol:
         st.markdown(
-            f'<div class="fc-card-title">🚙 {t["vehicles"]}</div>',
+            f'<div class="fc-card-title">{icon("car")}{t["vehicles"]}</div>',
             unsafe_allow_html=True,
         )
         vehicle_cards(db.vehicles())
     with guide:
         st.markdown(
-            f'<div class="fc-card-title">💡 {t["quick_guide"]}</div>',
+            f'<div class="fc-card-title">{icon("help")}{t["quick_guide"]}</div>',
             unsafe_allow_html=True,
         )
         for index, line in enumerate(t["guide_steps"], 1):
             st.markdown(f"**{index}.** {line}")
 
-elif page == t["history"]:
+elif page_key == "history":
     page_heading(t["history"], t["history_note"])
     vehicles = db.vehicles()
     by_id = {v["id"]: v for v in vehicles}
@@ -391,7 +475,7 @@ elif page == t["history"]:
                 db.delete_record(options[label])
                 st.rerun()
 
-elif page == t["vehicles"]:
+elif page_key == "vehicles":
     page_heading(t["vehicles"], t["vehicles_note"])
     vehicles = db.vehicles()
     by_id = {v["id"]: v for v in vehicles}
@@ -462,7 +546,7 @@ elif page == t["vehicles"]:
                 except sqlite3.IntegrityError:
                     st.error(t["duplicate"])
 
-elif page == t["excel_export"]:
+elif page_key == "export":
     page_heading(t["excel_export"], t["export_note"])
     records = db.records()
     if records:
@@ -475,7 +559,7 @@ elif page == t["excel_export"]:
         )
     else:
         st.info(t["no_history"])
-elif page == t["settings"]:
+elif page_key == "settings":
     page_heading(t["settings"], t["settings_note"])
     st.info(t["settings_help"])
 else:
