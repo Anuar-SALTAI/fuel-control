@@ -9,7 +9,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from fuel_control.calculations import as_decimal, calculate_fuel
+from fuel_control.calculations import calculate_fuel, parse_numeric_input
 from fuel_control.database import Database
 from fuel_control.export import records_to_excel
 from fuel_control.i18n import TEXT
@@ -68,7 +68,10 @@ db = Database()
 
 
 def asset_data(path: str) -> str:
-    return b64encode(Path(path).read_bytes()).decode("ascii")
+    asset = Path(path)
+    if not asset.exists():
+        return ""
+    return b64encode(asset.read_bytes()).decode("ascii")
 
 
 language = st.query_params.get("lang", "kk")
@@ -113,6 +116,10 @@ st.sidebar.markdown(
 
 def fmt(value: Decimal | float, unit="л") -> str:
     return f"{Decimal(str(value)):.2f} {unit}"
+
+
+def numeric_value(value, *, default=0, allow_none=False):
+    return parse_numeric_input(value, default=default, allow_none=allow_none)
 
 
 ICONS = {
@@ -265,11 +272,19 @@ if page_key == "new":
         start_date = d1.date_input(t["start_date"], date.today())
         end_date = d2.date_input(t["end_date"], date.today())
         o1, o2 = st.columns(2)
-        start_odo = o1.text_input(t["start_odometer"], "0", key="calc_start_odo")
-        end_odo = o2.text_input(t["end_odometer"], "0", key="calc_end_odo")
+        start_odo = o1.text_input(
+            t["start_odometer"], "", key="calc_start_odo", placeholder="0"
+        )
+        end_odo = o2.text_input(
+            t["end_odometer"], "", key="calc_end_odo", placeholder="0"
+        )
         f1, f2 = st.columns(2)
-        start_fuel = f1.text_input(t["start_fuel"], "0", key="calc_start_fuel")
-        refueled = f2.text_input(t["refueled_fuel"], "0", key="calc_refueled")
+        start_fuel = f1.text_input(
+            t["start_fuel"], "", key="calc_start_fuel", placeholder="0"
+        )
+        refueled = f2.text_input(
+            t["refueled_fuel"], "", key="calc_refueled", placeholder="0"
+        )
         summer_option = f'{t["summer"]} ({vehicle["summer_norm"]:g})'
         winter_option = f'{t["winter"]} ({vehicle["winter_norm"]:g})'
         norm_mode = st.radio(
@@ -279,11 +294,11 @@ if page_key == "new":
         default_norm = (
             vehicle["winter_norm"] if season == "winter" else vehicle["summer_norm"]
         )
-        used_norm = st.number_input(
+        norm_text = st.text_input(
             t["norm_unit"],
-            min_value=0.0,
-            value=float(default_norm),
-            step=0.01,
+            "",
+            key=f"calc_norm_{vehicle_id}_{norm_mode}",
+            placeholder=f"{default_norm:.2f}",
             label_visibility="collapsed",
         )
         note = st.text_area(t["note"], height=72, key="calc_note")
@@ -292,7 +307,11 @@ if page_key == "new":
     validation_error = None
     try:
         calculation = calculate_fuel(
-            start_odo, end_odo, start_fuel, refueled, used_norm
+            numeric_value(start_odo),
+            numeric_value(end_odo),
+            numeric_value(start_fuel),
+            numeric_value(refueled),
+            numeric_value(norm_text, default=default_norm),
         )
         if end_date < start_date:
             validation_error = t["date_error"]
@@ -310,13 +329,14 @@ if page_key == "new":
         if validation_error:
             st.error(validation_error)
         if calculation:
+            used_norm = numeric_value(norm_text, default=default_norm)
             r1, r2 = st.columns(2)
             r3, r4 = st.columns(2)
             r1.markdown(
                 metric_card(
                     t["distance_km"],
                     fmt(calculation.distance_km, "км"),
-                    f"{end_odo} − {start_odo}",
+                    f"{numeric_value(end_odo):g} − {numeric_value(start_odo):g}",
                     icon_name="road",
                 ),
                 unsafe_allow_html=True,
@@ -345,7 +365,7 @@ if page_key == "new":
                 metric_card(
                     t["calculated_balance"],
                     fmt(calculation.calculated_balance),
-                    f"{start_fuel} + {refueled} − {calculation.normative_consumption}",
+                    f"{numeric_value(start_fuel):g} + {numeric_value(refueled):g} − {calculation.normative_consumption}",
                     "green",
                     "tank",
                 ),
@@ -361,7 +381,12 @@ if page_key == "new":
             if actual.strip() and calculation:
                 try:
                     checked = calculate_fuel(
-                        start_odo, end_odo, start_fuel, refueled, used_norm, actual
+                        numeric_value(start_odo),
+                        numeric_value(end_odo),
+                        numeric_value(start_fuel),
+                        numeric_value(refueled),
+                        used_norm,
+                        numeric_value(actual, allow_none=True),
                     )
                     status = (
                         t["saving"]
@@ -402,14 +427,18 @@ if page_key == "new":
 
         def clear_calculator():
             for key, value in (
-                ("calc_start_odo", "0"),
-                ("calc_end_odo", "0"),
-                ("calc_start_fuel", "0"),
-                ("calc_refueled", "0"),
+                ("calc_start_odo", ""),
+                ("calc_end_odo", ""),
+                ("calc_start_fuel", ""),
+                ("calc_refueled", ""),
                 ("calc_actual", ""),
                 ("calc_note", ""),
             ):
                 st.session_state[key] = value
+            for key in [
+                key for key in st.session_state if key.startswith("calc_norm_")
+            ]:
+                del st.session_state[key]
 
         clear_col.button(
             t["clear"], use_container_width=True, on_click=clear_calculator
@@ -424,11 +453,11 @@ if page_key == "new":
                 vehicle_id=vehicle_id,
                 start_date=start_date.isoformat(),
                 end_date=end_date.isoformat(),
-                start_odometer=float(as_decimal(start_odo)),
-                end_odometer=float(as_decimal(end_odo)),
+                start_odometer=float(numeric_value(start_odo)),
+                end_odometer=float(numeric_value(end_odo)),
                 distance_km=float(calculation.distance_km),
-                start_fuel=float(as_decimal(start_fuel)),
-                refueled_fuel=float(as_decimal(refueled)),
+                start_fuel=float(numeric_value(start_fuel)),
+                refueled_fuel=float(numeric_value(refueled)),
                 season=season,
                 used_norm=used_norm,
                 normative_consumption=float(calculation.normative_consumption),
@@ -436,7 +465,7 @@ if page_key == "new":
                 actual_end_fuel=(
                     None
                     if calculation.difference is None
-                    else float(as_decimal(actual))
+                    else float(numeric_value(actual, allow_none=True))
                 ),
                 difference=(
                     None

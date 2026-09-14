@@ -16,6 +16,18 @@ def as_decimal(value: Decimal | float | int | str) -> Decimal:
         raise ValueError("Invalid numeric value") from error
 
 
+def parse_numeric_input(
+    value: Decimal | float | int | str | None,
+    *,
+    default: Decimal | float | int | str = 0,
+    allow_none: bool = False,
+) -> Decimal | None:
+    """Parse a UI value while treating a temporarily blank field as zero or None."""
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None if allow_none else as_decimal(default)
+    return as_decimal(value)
+
+
 def round_fuel(value: Decimal) -> Decimal:
     return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
@@ -36,15 +48,21 @@ def calculate_normative_consumption(distance_km, fuel_norm) -> Decimal:
     return round_fuel(distance * norm / Decimal(100))
 
 
-def calculate_expected_balance(start_fuel, refueled_fuel, normative_consumption) -> Decimal:
-    start, refueled, consumption = map(as_decimal, (start_fuel, refueled_fuel, normative_consumption))
+def calculate_expected_balance(
+    start_fuel, refueled_fuel, normative_consumption
+) -> Decimal:
+    start, refueled, consumption = map(
+        as_decimal, (start_fuel, refueled_fuel, normative_consumption)
+    )
     if start < 0 or refueled < 0 or consumption < 0:
         raise ValueError("Fuel values cannot be negative")
     return round_fuel(start + refueled - consumption)
 
 
 def calculate_difference(actual_end_fuel, calculated_balance) -> Decimal | None:
-    if actual_end_fuel is None or (isinstance(actual_end_fuel, str) and not actual_end_fuel.strip()):
+    if actual_end_fuel is None or (
+        isinstance(actual_end_fuel, str) and not actual_end_fuel.strip()
+    ):
         return None
     actual = as_decimal(actual_end_fuel)
     if actual < 0:
@@ -61,8 +79,17 @@ class FuelCalculation:
     difference: Decimal | None
 
 
-def calculate_fuel(start_odometer, end_odometer, start_fuel, refueled_fuel, fuel_norm, actual_end_fuel=None):
+def calculate_fuel(
+    start_odometer,
+    end_odometer,
+    start_fuel,
+    refueled_fuel,
+    fuel_norm,
+    actual_end_fuel=None,
+):
     distance = calculate_distance(start_odometer, end_odometer)
     consumption = calculate_normative_consumption(distance, fuel_norm)
     balance = calculate_expected_balance(start_fuel, refueled_fuel, consumption)
-    return FuelCalculation(distance, consumption, balance, calculate_difference(actual_end_fuel, balance))
+    return FuelCalculation(
+        distance, consumption, balance, calculate_difference(actual_end_fuel, balance)
+    )

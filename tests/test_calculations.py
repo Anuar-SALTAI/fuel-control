@@ -3,8 +3,12 @@ from decimal import Decimal
 import pytest
 
 from fuel_control.calculations import (
-    calculate_difference, calculate_distance, calculate_expected_balance,
-    calculate_fuel, calculate_normative_consumption,
+    calculate_difference,
+    calculate_distance,
+    calculate_expected_balance,
+    calculate_fuel,
+    calculate_normative_consumption,
+    parse_numeric_input,
 )
 
 
@@ -36,7 +40,12 @@ def test_missing_actual_balance_has_no_difference():
 
 
 @pytest.mark.parametrize(
-    ("actual", "expected"), [("10.01", Decimal("-1.00")), ("12.01", Decimal("1.00")), ("11.01", Decimal("0.00"))]
+    ("actual", "expected"),
+    [
+        ("10.01", Decimal("-1.00")),
+        ("12.01", Decimal("1.00")),
+        ("11.01", Decimal("0.00")),
+    ],
 )
 def test_actual_balance_reports_overspend_saving_or_match(actual, expected):
     assert calculate_difference(actual, Decimal("11.01")) == expected
@@ -44,3 +53,15 @@ def test_actual_balance_reports_overspend_saving_or_match(actual, expected):
 
 def test_comma_and_dot_decimal_inputs_are_equivalent():
     assert calculate_expected_balance("15,79", "503.0", "507,78") == Decimal("11.01")
+
+
+def test_numeric_input_replaces_visual_zero_instead_of_prefixing_it():
+    # Calculator inputs start empty with a visual `0` placeholder, so the first
+    # user-entered digits are the complete value rather than `0` + the digits.
+    assert parse_numeric_input("23057", default=0) == Decimal("23057")
+
+
+def test_numeric_input_accepts_comma_decimals_and_temporary_blanks():
+    assert parse_numeric_input("15,79") == Decimal("15.79")
+    assert parse_numeric_input("") == Decimal("0")
+    assert parse_numeric_input("   ", allow_none=True) is None
