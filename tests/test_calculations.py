@@ -1,35 +1,46 @@
+from decimal import Decimal
+
 import pytest
 
-from fuel_control.calculations import calculate_fuel
+from fuel_control.calculations import (
+    calculate_difference, calculate_distance, calculate_expected_balance,
+    calculate_fuel, calculate_normative_consumption,
+)
 
 
-def test_summer_gazelle_calculation():
-    result = calculate_fuel(1000, 26, 250, 20, 10)
-    assert result.normative_consumption == 260
-    assert result.actual_consumption == 260
-    assert result.difference == 0
-    assert result.is_saving
+def test_required_odometer_example():
+    assert calculate_distance(234082, 236035) == Decimal("1953")
 
 
-def test_winter_gazelle_uses_decimal_norm_and_reports_saving():
-    result = calculate_fuel(1250, 29.12, 300, 50, 20)
-    assert result.normative_consumption == 364
-    assert result.actual_consumption == 330
-    assert result.difference == 34
+def test_required_normative_consumption_example():
+    assert calculate_normative_consumption(1953, 26) == Decimal("507.78")
 
 
-def test_overspending_is_negative():
-    result = calculate_fuel(100, 26, 30, 10, 5)
-    assert result.difference == -9
-    assert not result.is_saving
+def test_required_expected_balance_example():
+    assert calculate_expected_balance("15.79", 503, "507.78") == Decimal("11.01")
 
 
-@pytest.mark.parametrize("values", [(-1, 26, 0, 0, 0), (1, -26, 0, 0, 0)])
-def test_negative_inputs_are_rejected(values):
+def test_winter_norm_calculation():
+    assert calculate_normative_consumption(1953, "29,12") == Decimal("568.71")
+
+
+def test_end_odometer_before_start_is_rejected():
     with pytest.raises(ValueError):
-        calculate_fuel(*values)
+        calculate_distance(200, 199)
 
 
-def test_impossible_balance_is_rejected():
-    with pytest.raises(ValueError):
-        calculate_fuel(100, 26, 5, 5, 11)
+def test_missing_actual_balance_has_no_difference():
+    result = calculate_fuel(234082, 236035, "15,79", 503, 26, "")
+    assert result.calculated_balance == Decimal("11.01")
+    assert result.difference is None
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"), [("10.01", Decimal("-1.00")), ("12.01", Decimal("1.00")), ("11.01", Decimal("0.00"))]
+)
+def test_actual_balance_reports_overspend_saving_or_match(actual, expected):
+    assert calculate_difference(actual, Decimal("11.01")) == expected
+
+
+def test_comma_and_dot_decimal_inputs_are_equivalent():
+    assert calculate_expected_balance("15,79", "503.0", "507,78") == Decimal("11.01")
