@@ -22,7 +22,7 @@ st.markdown(
     """<style>
 :root{--fc-blue:#0868df;--fc-navy:#102a56;--fc-border:#dbe6f2;--fc-bg:#f5f8fc}
 .stApp{background:linear-gradient(135deg,#f7faff 0%,#fff 52%,#f4f8fd 100%);color:var(--fc-navy)}
-.block-container{max-width:1280px;padding:1.1rem 1.5rem 3rem}.fc-brand{font-size:1.48rem;font-weight:800;color:#0b2348}
+.block-container{max-width:1280px;padding:3.75rem 1.5rem 3rem}.fc-brand{font-size:1.48rem;font-weight:800;color:#0b2348}
 .fc-subtitle{color:#60738f;font-size:.88rem}.fc-page-title{font-size:1.75rem;font-weight:800;margin:.8rem 0 .05rem}
 .fc-page-note{color:#60738f;margin-bottom:1.1rem}.fc-card{background:#fff;border:1px solid var(--fc-border);border-radius:12px;
 padding:1.15rem;box-shadow:0 2px 10px rgba(34,75,120,.035);margin-bottom:1rem}.fc-card-title{font-size:1.05rem;font-weight:750;margin-bottom:.9rem}
@@ -37,7 +37,7 @@ section[data-testid="stSidebar"]{background:#f7faff;border-right:1px solid var(-
 section[data-testid="stSidebar"] [role="radiogroup"] label{padding:.48rem .6rem;border-radius:8px;margin:.15rem 0}
 div[data-testid="stButton"] button,div[data-testid="stDownloadButton"] button{border-radius:8px;min-height:2.65rem;font-weight:650}
 div[data-baseweb="input"]>div,div[data-baseweb="select"]>div,textarea{border-radius:8px!important}
-@media(max-width:700px){.block-container{padding:.75rem .65rem 2rem}.fc-brand{font-size:1.2rem}.fc-page-title{font-size:1.45rem}
+@media(max-width:700px){.block-container{padding:calc(3.75rem + env(safe-area-inset-top, 0px)) .65rem 2rem}.fc-brand{font-size:1.2rem}.fc-page-title{font-size:1.45rem}
 .fc-result{min-height:104px;padding:.75rem}.fc-value{font-size:1.3rem}.fc-table-wrap{display:none}.fc-mobile-records{display:block}
 div[data-testid="stHorizontalBlock"]{gap:.55rem}.fc-card{padding:.8rem}.fc-vehicle .fc-badge{float:none;display:inline-block;margin-top:.35rem}}
 </style>""",
