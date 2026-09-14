@@ -37,3 +37,15 @@ def test_brand_assets_and_slogans_are_present_without_fuel_emoji():
     assert Path("assets/sidebar-road.svg").is_file()
     assert TEXT["kk"]["header_slogan"] == "Жолдың әр километрі — бақылауда"
     assert TEXT["ru"]["header_slogan"] == "Каждый километр — под контролем"
+
+
+def test_polished_banner_keeps_controls_inside_and_uses_outline_menu_icons():
+    source = Path("app.py").read_text(encoding="utf-8")
+    assert ".fc-banner{height:280px" in source
+    assert ".fc-banner-controls{position:absolute" in source
+    assert ".fc-slogan" in source and "font-size:1.85rem" in source
+    assert 'href="?lang=kk"' in source and 'href="?lang=ru"' in source
+    assert "label:nth-child(6)" in source
+    assert "margin-top:-" not in source
+    assert "position:fixed" not in source
+    assert "position:sticky" not in source

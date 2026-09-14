@@ -25,9 +25,12 @@ st.markdown(
 :root{--fc-blue:#0868df;--fc-navy:#102a56;--fc-border:#dbe6f2;--fc-bg:#f5f8fc}
 .stApp{background:linear-gradient(135deg,#f7faff 0%,#fff 52%,#f4f8fd 100%);color:var(--fc-navy)}
 .block-container{max-width:1320px;padding:3.75rem 1.5rem 3rem}.fc-brand{font-size:1.48rem;font-weight:800;color:#0b2348}
-.fc-banner{height:250px;border:1px solid var(--fc-border);border-radius:16px;background-size:cover;background-position:center 62%;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(15,45,92,.14)}
-.fc-banner-copy{position:absolute;inset:0;display:flex;align-items:flex-start;padding:1.35rem 1.5rem;background:linear-gradient(90deg,rgba(5,28,59,.78) 0%,rgba(5,28,59,.48) 34%,rgba(5,28,59,.08) 67%,rgba(5,28,59,.18) 100%)}
-.fc-banner .fc-brand{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.3)}.fc-banner .fc-subtitle{color:#e7f2ff}.fc-logo{width:48px;height:48px;margin-right:.8rem}.fc-slogan{position:absolute;left:34%;top:22%;font-size:1.15rem;font-style:italic;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.65)}
+.fc-banner{height:280px;border:1px solid var(--fc-border);border-radius:16px;background-size:cover;background-position:center 64%;position:relative;overflow:hidden;box-shadow:0 12px 32px rgba(15,45,92,.16)}
+.fc-banner-overlay{position:absolute;inset:0;background:linear-gradient(110deg,rgba(5,27,58,.76) 0%,rgba(5,27,58,.44) 35%,rgba(5,27,58,.08) 67%,rgba(5,27,58,.26) 100%)}
+.fc-banner-copy{position:absolute;left:24px;top:22px;display:flex;align-items:center}.fc-banner .fc-brand{color:#fff;font-size:1.65rem;text-shadow:0 1px 6px rgba(0,0,0,.3)}
+.fc-banner .fc-subtitle{color:#e7f2ff;font-size:.92rem}.fc-logo{width:50px;height:50px;margin-right:.8rem}.fc-slogan{position:absolute;left:29%;top:42%;max-width:45%;font-family:Inter,Manrope,system-ui,sans-serif;font-size:1.85rem;font-weight:600;font-style:italic;line-height:1.2;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.fc-banner-controls{position:absolute;right:22px;top:20px;display:flex;align-items:center;gap:10px}.fc-language{display:flex;padding:3px;border:1px solid rgba(255,255,255,.65);border-radius:12px;background:rgba(7,29,58,.34);backdrop-filter:blur(8px)}
+.fc-language a{padding:.42rem .72rem;border-radius:8px;color:#fff!important;text-decoration:none!important;font-weight:650;font-size:.86rem}.fc-language a.active{background:#fff;color:#1267cd!important}.fc-profile{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(255,255,255,.65);border-radius:50%;background:rgba(7,29,58,.34);color:#fff;backdrop-filter:blur(8px)}
 .fc-icon{display:inline-block;width:1.35rem;height:1.35rem;vertical-align:-.3rem;margin-right:.45rem;color:#1677ff}.fc-info{margin-top:1rem;padding:.7rem .8rem;background:#f5f9ff;border-top:1px solid var(--fc-border);color:#60738f;font-size:.82rem}
 .fc-subtitle{color:#60738f;font-size:.88rem}.fc-page-title{font-size:1.75rem;font-weight:800;margin:.8rem 0 .05rem}
 .fc-page-note{color:#60738f;margin-bottom:1.1rem}.fc-card{background:#fff;border:1px solid var(--fc-border);border-radius:12px;
@@ -40,13 +43,21 @@ padding:1.15rem;box-shadow:0 2px 10px rgba(34,75,120,.035);margin-bottom:1rem}.f
 .fc-table-wrap{overflow-x:auto}.fc-table{width:100%;border-collapse:collapse;font-size:.78rem}.fc-table th{background:#eaf0f7;color:#435673;text-align:left}
 .fc-table th,.fc-table td{padding:.55rem;border:1px solid #dce5ef;white-space:nowrap}.fc-mobile-records{display:none}.fc-mobile-record{background:#fff;border:1px solid var(--fc-border);border-radius:10px;padding:.8rem;margin:.55rem 0}
 section[data-testid="stSidebar"]{background:#f7faff;border-right:1px solid var(--fc-border)}
-section[data-testid="stSidebar"] [role="radiogroup"] label{padding:.48rem .6rem;border-radius:8px;margin:.15rem 0}
+section[data-testid="stSidebar"] [role="radiogroup"] label{padding:.5rem .65rem;border-radius:9px;margin:.12rem 0;color:#173557}
 section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked){background:#1677ff;color:#fff}
-.fc-sidebar-brand{text-align:left;color:#416183;padding:.2rem 1rem 1rem;font-size:.88rem}.fc-sidebar-road{width:100%;margin-top:8rem}
+section[data-testid="stSidebar"] [role="radiogroup"] label p:before{content:"";display:inline-block;width:19px;height:19px;margin-right:.65rem;vertical-align:-.25rem;background:var(--menu-icon) center/contain no-repeat}
+section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(1){--menu-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173557' stroke-width='2'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3C/svg%3E")}
+section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(2){--menu-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173557' stroke-width='2'%3E%3Cpath d='M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5m4-2v6l4 2'/%3E%3C/svg%3E")}
+section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(3){--menu-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173557' stroke-width='2'%3E%3Cpath d='m4 16 2-6h12l2 6M3 16h18v4h-2v-2H5v2H3v-4Z'/%3E%3C/svg%3E")}
+section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(4){--menu-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173557' stroke-width='2'%3E%3Cpath d='M6 2h9l4 4v16H6zM14 2v5h5M9 16h6m-3-5v8m-3-6h6'/%3E%3C/svg%3E")}
+section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(5){--menu-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173557' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19 12a7 7 0 0 0-.1-1l2-1-2-4-2 1a7 7 0 0 0-2-1l-.3-2h-5l-.3 2a7 7 0 0 0-2 1l-2-1-2 4 2 1a7 7 0 0 0 0 2l-2 1 2 4 2-1a7 7 0 0 0 2 1l.3 2h5l.3-2a7 7 0 0 0 2-1l2 1 2-4-2-1a7 7 0 0 0 .1-1Z'/%3E%3C/svg%3E")}
+section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(6){--menu-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173557' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M9.5 9a2.5 2.5 0 1 1 3.6 2.2c-1.1.6-1.1 1.2-1.1 2.3M12 17h.01'/%3E%3C/svg%3E")}
+section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) p:before{filter:brightness(0) invert(1)}
+.fc-sidebar-brand{text-align:left;color:#416183;padding:0 .8rem .65rem;font-size:.84rem;line-height:1.3}.fc-sidebar-road{display:block;width:82%;max-height:72px;margin:2.5rem auto .1rem}
 div[data-testid="stButton"] button,div[data-testid="stDownloadButton"] button{border-radius:8px;min-height:2.65rem;font-weight:650}
 div[data-baseweb="input"]>div,div[data-baseweb="select"]>div,textarea{border-radius:8px!important}
 @media(max-width:700px){.block-container{padding:calc(3.75rem + env(safe-area-inset-top, 0px)) .65rem 2rem}.fc-brand{font-size:1.15rem}.fc-page-title{font-size:1.45rem}
-.fc-banner{height:150px;background-position:center 62%}.fc-banner-copy{padding:.75rem;background:linear-gradient(90deg,rgba(5,28,59,.78),rgba(5,28,59,.35) 65%,transparent)}.fc-logo{width:34px;height:34px}.fc-slogan{display:none}
+.fc-banner{height:170px;background-position:center 64%}.fc-banner-copy{left:12px;top:12px}.fc-banner .fc-brand{font-size:1.15rem}.fc-banner .fc-subtitle{font-size:.7rem;max-width:145px}.fc-logo{width:34px;height:34px}.fc-slogan{display:block;left:14px;top:auto;bottom:15px;max-width:64%;font-size:1.2rem}.fc-banner-controls{right:10px;top:10px;gap:6px}.fc-language a{padding:.32rem .48rem;font-size:.75rem}.fc-profile{width:32px;height:32px}.fc-profile svg{width:20px;height:20px}
 .fc-result{min-height:104px;padding:.75rem}.fc-value{font-size:1.3rem}.fc-table-wrap{display:none}.fc-mobile-records{display:block}
 div[data-testid="stHorizontalBlock"]{gap:.55rem}.fc-card{padding:.8rem}.fc-vehicle .fc-badge{float:none;display:inline-block;margin-top:.35rem}}
 </style>""",
@@ -60,31 +71,32 @@ def asset_data(path: str) -> str:
     return b64encode(Path(path).read_bytes()).decode("ascii")
 
 
-header, switch, profile = st.columns([5, 1.05, 0.3], vertical_alignment="center")
-language = switch.radio(
-    "Language", ["Қаз", "Рус"], horizontal=True, label_visibility="collapsed"
-)
-t = TEXT["kk" if language == "Қаз" else "ru"]
-profile.markdown(
-    '<svg aria-label="Profile" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#315679" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3"/><path d="M6.5 19c.8-3 2.7-4.5 5.5-4.5s4.7 1.5 5.5 4.5"/></svg>',
-    unsafe_allow_html=True,
-)
-header.markdown(
+language = st.query_params.get("lang", "kk")
+language = language if language in TEXT else "kk"
+t = TEXT[language]
+st.markdown(
     f'<div class="fc-banner" style="background-image:url(data:image/png;base64,{asset_data("assets/hero_banner.png")})">'
+    '<div class="fc-banner-overlay"></div>'
     f'<div class="fc-banner-copy"><img class="fc-logo" src="data:image/svg+xml;base64,{asset_data("assets/logo.svg")}">'
     f'<div><div class="fc-brand">Fuel Control</div><div class="fc-subtitle">{t["brand_subtitle"]}</div></div></div>'
-    f'<div class="fc-slogan">{html.escape(t["header_slogan"])}</div></div>',
+    f'<div class="fc-slogan">{html.escape(t["header_slogan"])}</div>'
+    '<div class="fc-banner-controls"><div class="fc-language">'
+    f'<a href="?lang=kk" target="_self" class="{"active" if language == "kk" else ""}">Қаз</a>'
+    f'<a href="?lang=ru" target="_self" class="{"active" if language == "ru" else ""}">Рус</a>'
+    '</div><span class="fc-profile"><svg aria-label="Profile" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3"/><path d="M6.5 19c.8-3 2.7-4.5 5.5-4.5s4.7 1.5 5.5 4.5"/></svg></span></div></div>',
     unsafe_allow_html=True,
 )
 
 menu_labels = [
-    f'⊕  {t["new_calculation"]}',
-    f'◷  {t["history"]}',
-    f'▱  {t["vehicles"]}',
-    f'⇩  {t["excel_export"]}',
-    f'◇  {t["settings"]}',
-    f'?  {t["instruction"]}',
+    t["new_calculation"],
+    t["history"],
+    t["vehicles"],
+    t["excel_export"],
+    t["settings"],
+    t["instruction"],
 ]
+if st.session_state.get("navigation") not in (None, *menu_labels):
+    st.session_state.navigation = menu_labels[0]
 page = st.sidebar.radio(
     "Fuel Control", menu_labels, label_visibility="collapsed", key="navigation"
 )
