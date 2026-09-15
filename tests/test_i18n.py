@@ -29,10 +29,10 @@ def test_layout_reserves_space_below_streamlit_header():
 
 def test_brand_assets_and_slogans_are_present_without_fuel_emoji():
     source = Path("app.py").read_text(encoding="utf-8")
-    assert 'page_icon="assets/logo.svg"' in source
+    assert "page_icon=str(LOGO)" in source
     assert "⛽" not in source
     assert Path("assets/logo.svg").is_file()
-    assert 'asset_data("assets/hero_banner.png")' in source
+    assert 'HERO_BANNER = ASSETS_DIR / "hero_banner.png"' in source
     assert not Path("assets/header-banner.svg").exists()
     assert Path("assets/sidebar-road.svg").is_file()
     assert TEXT["kk"]["header_slogan"] == "Жолдың әр километрі — бақылауда"
@@ -53,7 +53,10 @@ def test_polished_banner_keeps_controls_inside_and_uses_outline_menu_icons():
 
 def test_sidebar_branding_references_main_branch_photo_without_road_illustration():
     source = Path("app.py").read_text(encoding="utf-8")
-    assert 'asset_data("assets/sidebar_photo.png")' in source
+    assert "BASE_DIR = Path(__file__).resolve().parent" in source
+    assert 'SIDEBAR_PHOTO = ASSETS_DIR / "sidebar_photo.png"' in source
+    assert "if SIDEBAR_PHOTO.is_file():" in source
+    assert "asset_data(SIDEBAR_PHOTO)" in source
     assert 'asset_data("assets/sidebar-road.svg")' not in source
     assert ".fc-sidebar-photo" in source
-    assert "object-position:58% center" in source
+    assert "object-position:center 35%" in source

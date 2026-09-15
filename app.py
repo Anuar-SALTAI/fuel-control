@@ -14,9 +14,15 @@ from fuel_control.database import Database
 from fuel_control.export import records_to_excel
 from fuel_control.i18n import TEXT
 
+BASE_DIR = Path(__file__).resolve().parent
+ASSETS_DIR = BASE_DIR / "assets"
+HERO_BANNER = ASSETS_DIR / "hero_banner.png"
+LOGO = ASSETS_DIR / "logo.svg"
+SIDEBAR_PHOTO = ASSETS_DIR / "sidebar_photo.png"
+
 st.set_page_config(
     page_title="Fuel Control",
-    page_icon="assets/logo.svg",
+    page_icon=str(LOGO),
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -53,13 +59,14 @@ section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(4){--menu-i
 section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(5){--menu-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173557' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19 12a7 7 0 0 0-.1-1l2-1-2-4-2 1a7 7 0 0 0-2-1l-.3-2h-5l-.3 2a7 7 0 0 0-2 1l-2-1-2 4 2 1a7 7 0 0 0 0 2l-2 1 2 4 2-1a7 7 0 0 0 2 1l.3 2h5l.3-2a7 7 0 0 0 2-1l2 1 2-4-2-1a7 7 0 0 0 .1-1Z'/%3E%3C/svg%3E")}
 section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(6){--menu-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173557' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M9.5 9a2.5 2.5 0 1 1 3.6 2.2c-1.1.6-1.1 1.2-1.1 2.3M12 17h.01'/%3E%3C/svg%3E")}
 section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) p:before{filter:brightness(0) invert(1)}
-.fc-sidebar-card{width:88%;max-width:172px;margin:2.25rem auto .65rem;padding:.38rem .38rem .7rem;background:#fff;border:1px solid #dce6f2;border-radius:15px;box-shadow:0 5px 18px rgba(15,45,92,.08)}
-.fc-sidebar-photo{display:block;width:100%;height:210px;object-fit:cover;object-position:58% center;border-radius:11px}.fc-sidebar-brand{text-align:center;color:#173557;padding:.6rem .25rem 0;font-size:.84rem;line-height:1.32}.fc-sidebar-brand b{font-weight:650}.fc-sidebar-brand span{font-weight:400;color:#5a718d}
-@media(max-height:760px){.fc-sidebar-card{margin-top:1rem}.fc-sidebar-photo{height:145px}}
+.fc-sidebar-card{width:calc(100% - 24px);max-width:188px;margin:2rem auto .75rem;padding:7px 7px 10px;background:#fff;border:1px solid #dce6f2;border-radius:15px;box-shadow:0 5px 18px rgba(15,45,92,.07);box-sizing:border-box}
+.fc-sidebar-photo{display:block;width:100%;height:220px;object-fit:cover;object-position:center 35%;border-radius:12px}.fc-sidebar-brand{text-align:center;color:#173557;padding:10px 3px 0;font-size:.84rem;line-height:1.32}.fc-sidebar-brand b{font-weight:650}.fc-sidebar-brand span{font-weight:400;color:#5a718d}
+@media(max-height:760px){.fc-sidebar-card{margin-top:1rem}.fc-sidebar-photo{height:160px}}
 div[data-testid="stButton"] button,div[data-testid="stDownloadButton"] button{border-radius:8px;min-height:2.65rem;font-weight:650}
 div[data-baseweb="input"]>div,div[data-baseweb="select"]>div,textarea{border-radius:8px!important}
 @media(max-width:700px){.block-container{padding:calc(3.75rem + env(safe-area-inset-top, 0px)) .65rem 2rem}.fc-brand{font-size:1.15rem}.fc-page-title{font-size:1.45rem}
 .fc-banner{height:170px;background-position:center 64%}.fc-banner-copy{left:12px;top:12px}.fc-banner .fc-brand{font-size:1.15rem}.fc-banner .fc-subtitle{font-size:.7rem;max-width:145px}.fc-logo{width:34px;height:34px}.fc-slogan{display:block;left:14px;top:auto;bottom:15px;max-width:64%;font-size:1.2rem}.fc-banner-controls{right:10px;top:10px;gap:6px}.fc-language a{padding:.32rem .48rem;font-size:.75rem}.fc-profile{width:32px;height:32px}.fc-profile svg{width:20px;height:20px}
+.fc-sidebar-card{width:100%;max-width:188px}.fc-sidebar-photo{height:200px}
 .fc-result{min-height:104px;padding:.75rem}.fc-value{font-size:1.3rem}.fc-table-wrap{display:none}.fc-mobile-records{display:block}
 div[data-testid="stHorizontalBlock"]{gap:.55rem}.fc-card{padding:.8rem}.fc-vehicle .fc-badge{float:none;display:inline-block;margin-top:.35rem}}
 </style>""",
@@ -69,20 +76,19 @@ div[data-testid="stHorizontalBlock"]{gap:.55rem}.fc-card{padding:.8rem}.fc-vehic
 db = Database()
 
 
-def asset_data(path: str) -> str:
-    asset = Path(path)
-    if not asset.exists():
+def asset_data(path: Path) -> str:
+    if not path.is_file():
         return ""
-    return b64encode(asset.read_bytes()).decode("ascii")
+    return b64encode(path.read_bytes()).decode("ascii")
 
 
 language = st.query_params.get("lang", "kk")
 language = language if language in TEXT else "kk"
 t = TEXT[language]
 st.markdown(
-    f'<div class="fc-banner" style="background-image:url(data:image/png;base64,{asset_data("assets/hero_banner.png")})">'
+    f'<div class="fc-banner" style="background-image:url(data:image/png;base64,{asset_data(HERO_BANNER)})">'
     '<div class="fc-banner-overlay"></div>'
-    f'<div class="fc-banner-copy"><img class="fc-logo" src="data:image/svg+xml;base64,{asset_data("assets/logo.svg")}">'
+    f'<div class="fc-banner-copy"><img class="fc-logo" src="data:image/svg+xml;base64,{asset_data(LOGO)}">'
     f'<div><div class="fc-brand">Fuel Control</div><div class="fc-subtitle">{t["brand_subtitle"]}</div></div></div>'
     f'<div class="fc-slogan">{html.escape(t["header_slogan"])}</div>'
     '<div class="fc-banner-controls"><div class="fc-language">'
@@ -109,8 +115,14 @@ page_key = ("new", "history", "vehicles", "export", "settings", "instruction")[
     menu_labels.index(page)
 ]
 st.sidebar.caption("v1.1.0")
+sidebar_photo_html = ""
+if SIDEBAR_PHOTO.is_file():
+    sidebar_photo_html = (
+        f'<img class="fc-sidebar-photo" alt="" '
+        f'src="data:image/png;base64,{asset_data(SIDEBAR_PHOTO)}">'
+    )
 st.sidebar.markdown(
-    f'<div class="fc-sidebar-card"><img class="fc-sidebar-photo" alt="" src="data:image/png;base64,{asset_data("assets/sidebar_photo.png")}">'
+    f'<div class="fc-sidebar-card">{sidebar_photo_html}'
     f'<div class="fc-sidebar-brand"><b>{t["sidebar_slogan_1"]}</b><br><span>{t["sidebar_slogan_2"]}</span></div></div>',
     unsafe_allow_html=True,
 )
