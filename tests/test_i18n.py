@@ -60,3 +60,6 @@ def test_sidebar_branding_references_main_branch_photo_without_road_illustration
     assert 'asset_data("assets/sidebar-road.svg")' not in source
     assert ".fc-sidebar-photo" in source
     assert "object-position:center 35%" in source
+    assert ".fc-sidebar-card{width:90%;max-width:185px" in source
+    assert "padding:0;background:transparent;border:0;box-shadow:none" in source
+    assert "height:270px;object-fit:cover" in source
