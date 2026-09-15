@@ -49,3 +49,11 @@ def test_polished_banner_keeps_controls_inside_and_uses_outline_menu_icons():
     assert "margin-top:-" not in source
     assert "position:fixed" not in source
     assert "position:sticky" not in source
+
+
+def test_sidebar_branding_references_main_branch_photo_without_road_illustration():
+    source = Path("app.py").read_text(encoding="utf-8")
+    assert 'asset_data("assets/sidebar_photo.png")' in source
+    assert 'asset_data("assets/sidebar-road.svg")' not in source
+    assert ".fc-sidebar-photo" in source
+    assert "object-position:58% center" in source

@@ -53,7 +53,9 @@ section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(4){--menu-i
 section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(5){--menu-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173557' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19 12a7 7 0 0 0-.1-1l2-1-2-4-2 1a7 7 0 0 0-2-1l-.3-2h-5l-.3 2a7 7 0 0 0-2 1l-2-1-2 4 2 1a7 7 0 0 0 0 2l-2 1 2 4 2-1a7 7 0 0 0 2 1l.3 2h5l.3-2a7 7 0 0 0 2-1l2 1 2-4-2-1a7 7 0 0 0 .1-1Z'/%3E%3C/svg%3E")}
 section[data-testid="stSidebar"] [role="radiogroup"] label:nth-child(6){--menu-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173557' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M9.5 9a2.5 2.5 0 1 1 3.6 2.2c-1.1.6-1.1 1.2-1.1 2.3M12 17h.01'/%3E%3C/svg%3E")}
 section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) p:before{filter:brightness(0) invert(1)}
-.fc-sidebar-brand{text-align:left;color:#416183;padding:0 .8rem .65rem;font-size:.84rem;line-height:1.3}.fc-sidebar-road{display:block;width:82%;max-height:72px;margin:2.5rem auto .1rem}
+.fc-sidebar-card{width:88%;max-width:172px;margin:2.25rem auto .65rem;padding:.38rem .38rem .7rem;background:#fff;border:1px solid #dce6f2;border-radius:15px;box-shadow:0 5px 18px rgba(15,45,92,.08)}
+.fc-sidebar-photo{display:block;width:100%;height:210px;object-fit:cover;object-position:58% center;border-radius:11px}.fc-sidebar-brand{text-align:center;color:#173557;padding:.6rem .25rem 0;font-size:.84rem;line-height:1.32}.fc-sidebar-brand b{font-weight:650}.fc-sidebar-brand span{font-weight:400;color:#5a718d}
+@media(max-height:760px){.fc-sidebar-card{margin-top:1rem}.fc-sidebar-photo{height:145px}}
 div[data-testid="stButton"] button,div[data-testid="stDownloadButton"] button{border-radius:8px;min-height:2.65rem;font-weight:650}
 div[data-baseweb="input"]>div,div[data-baseweb="select"]>div,textarea{border-radius:8px!important}
 @media(max-width:700px){.block-container{padding:calc(3.75rem + env(safe-area-inset-top, 0px)) .65rem 2rem}.fc-brand{font-size:1.15rem}.fc-page-title{font-size:1.45rem}
@@ -108,8 +110,8 @@ page_key = ("new", "history", "vehicles", "export", "settings", "instruction")[
 ]
 st.sidebar.caption("v1.1.0")
 st.sidebar.markdown(
-    f'<img class="fc-sidebar-road" src="data:image/svg+xml;base64,{asset_data("assets/sidebar-road.svg")}">'
-    f'<div class="fc-sidebar-brand"><b>{t["sidebar_slogan_1"]}</b><br>{t["sidebar_slogan_2"]}</div>',
+    f'<div class="fc-sidebar-card"><img class="fc-sidebar-photo" alt="" src="data:image/png;base64,{asset_data("assets/sidebar_photo.png")}">'
+    f'<div class="fc-sidebar-brand"><b>{t["sidebar_slogan_1"]}</b><br><span>{t["sidebar_slogan_2"]}</span></div></div>',
     unsafe_allow_html=True,
 )
 
