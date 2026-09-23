@@ -10,9 +10,12 @@ from pathlib import Path
 import streamlit as st
 
 from fuel_control.calculations import calculate_fuel, parse_numeric_input
+from fuel_control.auth import AuthService
 from fuel_control.database import Database
 from fuel_control.export import records_to_excel
 from fuel_control.i18n import TEXT
+from fuel_control.supabase_client import create_supabase_client
+from fuel_control.supabase_repository import SupabaseRepository
 
 BASE_DIR = Path(__file__).resolve().parent
 ASSETS_DIR = BASE_DIR / "assets"
@@ -75,9 +78,6 @@ div[data-testid="stHorizontalBlock"]{gap:.55rem}.fc-card{padding:.8rem}.fc-vehic
     unsafe_allow_html=True,
 )
 
-db = Database()
-
-
 def asset_data(path: Path) -> str:
     if not path.is_file():
         return ""
@@ -100,6 +100,63 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+
+def supabase_client():
+    if "supabase_client" in st.session_state:
+        return st.session_state.supabase_client
+    try:
+        client = create_supabase_client(st.secrets)
+    except (KeyError, FileNotFoundError):
+        client = None
+    st.session_state.supabase_client = client
+    return client
+
+
+remote = supabase_client()
+if remote is None:
+    db = Database()
+else:
+    auth = AuthService(remote)
+    user = auth.current_user()
+    if user is None:
+        st.markdown(f"## {t['auth_title']}")
+        st.caption(t["auth_note"])
+        login_tab, register_tab = st.tabs([t["login"], t["register"]])
+        with login_tab:
+            with st.form("login"):
+                email = st.text_input(t["email"], key="login_email")
+                password = st.text_input(
+                    t["password"], type="password", key="login_password"
+                )
+                if st.form_submit_button(t["login"], type="primary"):
+                    try:
+                        auth.login(email, password)
+                        st.rerun()
+                    except Exception:
+                        st.error(t["auth_error"])
+        with register_tab:
+            with st.form("register"):
+                email = st.text_input(t["email"], key="register_email")
+                password = st.text_input(
+                    t["password"], type="password", key="register_password"
+                )
+                if st.form_submit_button(t["register"], type="primary"):
+                    try:
+                        outcome = auth.register(email, password)
+                        if outcome.confirmation_required:
+                            st.success(t["confirmation_sent"])
+                        else:
+                            st.rerun()
+                    except Exception:
+                        st.error(t["auth_error"])
+        st.stop()
+    db = SupabaseRepository(remote, str(user.id))
+    if not db.vehicles():
+        db.add_vehicle(
+            name="Газель", brand="", model="", plate_number="", fuel_type="",
+            summer_norm=26, winter_norm=29.12, active=True,
+        )
+
 menu_labels = [
     t["new_calculation"],
     t["history"],
@@ -117,6 +174,9 @@ page_key = ("new", "history", "vehicles", "export", "settings", "instruction")[
     menu_labels.index(page)
 ]
 st.sidebar.caption("v1.1.0")
+if remote is not None and st.sidebar.button(t["logout"], use_container_width=True):
+    auth.logout()
+    st.rerun()
 sidebar_photo_html = ""
 if SIDEBAR_PHOTO.is_file():
     sidebar_photo_html = (
@@ -475,7 +535,7 @@ if page_key == "new":
                 start_fuel=float(numeric_value(start_fuel)),
                 refueled_fuel=float(numeric_value(refueled)),
                 season=season,
-                used_norm=used_norm,
+                used_norm=float(used_norm),
                 normative_consumption=float(calculation.normative_consumption),
                 calculated_balance=float(calculation.calculated_balance),
                 actual_end_fuel=(
