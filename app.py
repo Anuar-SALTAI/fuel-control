@@ -535,7 +535,7 @@ if page_key == "new":
                 start_fuel=float(numeric_value(start_fuel)),
                 refueled_fuel=float(numeric_value(refueled)),
                 season=season,
-                used_norm=used_norm,
+                used_norm=float(used_norm),
                 normative_consumption=float(calculation.normative_consumption),
                 calculated_balance=float(calculation.calculated_balance),
                 actual_end_fuel=(
