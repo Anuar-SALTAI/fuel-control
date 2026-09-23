@@ -1,6 +1,8 @@
 import pickle
 import sqlite3
 
+import pytest
+
 from fuel_control.database import Database
 
 
@@ -61,3 +63,21 @@ def test_legacy_monthly_database_is_migrated_without_data_loss(tmp_path):
     assert migrated["distance_km"] == 100
     assert migrated["actual_end_fuel"] == 4
     assert migrated["difference"] == 0
+
+
+def test_sqlite_fallback_isolates_users(tmp_path):
+    path = tmp_path / "shared.db"
+    user_a = Database(path, user_id="user-a")
+    user_b = Database(path, user_id="user-b")
+    a_vehicle = user_a.add_vehicle(**vehicle_data("Shared name"))
+    b_vehicle = user_b.add_vehicle(**vehicle_data("Shared name"))
+    user_a.add_record(**record_data(a_vehicle))
+    user_b.add_record(**record_data(b_vehicle))
+
+    assert {vehicle["id"] for vehicle in user_a.vehicles()} != {
+        vehicle["id"] for vehicle in user_b.vehicles()
+    }
+    assert [row["vehicle_id"] for row in user_a.records()] == [a_vehicle]
+    assert [row["vehicle_id"] for row in user_b.records()] == [b_vehicle]
+    with pytest.raises(sqlite3.IntegrityError):
+        user_a.add_record(**record_data(b_vehicle))
