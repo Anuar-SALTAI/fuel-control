@@ -1,7 +1,3 @@
-import json
-from datetime import date
-from decimal import Decimal
-from pathlib import Path
 from types import SimpleNamespace
 
 from fuel_control.supabase_repository import SupabaseRepository
@@ -70,22 +66,3 @@ def test_supabase_vehicle_operations_are_user_scoped():
 
     assert [item["user_id"] for item in repo_a.vehicles()] == ["user-a"]
     assert [item["user_id"] for item in repo_b.vehicles()] == ["user-b"]
-
-
-def test_add_record_payload_is_json_compatible():
-    client = FakeClient()
-    repository = SupabaseRepository(client, "user-a")
-
-    repository.add_record(
-        vehicle_id=1,
-        start_date=date(2026, 9, 1),
-        end_date="2026-09-30",
-        used_norm=Decimal("26.00"),
-        note_path=Path("receipts/september.txt"),
-    )
-
-    payload = client.tables["records"][0]
-    json.dumps(payload)
-    assert payload["used_norm"] == 26.0
-    assert payload["start_date"] == "2026-09-01"
-    assert payload["note_path"] == "receipts/september.txt"

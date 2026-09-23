@@ -1,24 +1,5 @@
 """User-scoped data access through Supabase/PostgREST."""
 
-from datetime import date, datetime
-from decimal import Decimal
-from pathlib import Path
-
-
-def _json_compatible(value):
-    """Convert supported domain values to PostgREST JSON primitives."""
-    if isinstance(value, Decimal):
-        return float(value)
-    if isinstance(value, (date, datetime)):
-        return value.isoformat()
-    if isinstance(value, Path):
-        return str(value)
-    if isinstance(value, dict):
-        return {key: _json_compatible(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [_json_compatible(item) for item in value]
-    return value
-
 
 class SupabaseRepository:
     """Repository whose explicit filters complement database RLS policies."""
@@ -43,7 +24,7 @@ class SupabaseRepository:
          .eq("user_id", self.user_id).execute())
 
     def add_record(self, **record):
-        data = _json_compatible({**record, "user_id": self.user_id})
+        data = {**record, "user_id": self.user_id}
         return self.client.table("records").insert(data).execute().data[0]["id"]
 
     def records(self, vehicle_id=None) -> list[dict]:
